@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Get tail',
+      title: 'Рассчет координат',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Рассчет координат плиточной карты'),
     );
   }
 }
@@ -50,9 +50,10 @@ class MyHomePage extends StatefulWidget {
 
 late TextEditingController _controllerLat;
 late TextEditingController _controllerLong;
+late String x;
+late String y;
 
-late String _url =
-    "https://core-carparks-renderer-lots.maps.yandex.net/maps-rdr-carparks/tiles?l=carparks&x=316898&y=164368&z=19&scale=1&lang=ru_RU";
+late String _url;
 
 class _MyHomePageState extends State<MyHomePage> {
   @override
@@ -64,8 +65,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void initState() {
-    _controllerLat = TextEditingController(text: "55.755819");
-    _controllerLong = TextEditingController(text: "37.617644");
+    _controllerLat = TextEditingController(text: "55.750626");
+    _controllerLong = TextEditingController(text: "37.597664");
+
+    x = _getX(37.597664);
+    y = _getY(55.750626);
+
+    _url =
+        "https://core-carparks-renderer-lots.maps.yandex.net/maps-rdr-carparks/tiles?l=carparks&x=${x}&y=${y}&z=19&scale=1&lang=ru_RU";
 
     super.initState();
   }
@@ -118,7 +125,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         onPressed: () {
                           getResult();
                         },
-                        child: const Text("GO")),
+                        child: const Text("Найти плитку")),
                   ),
                 ],
               ),
@@ -128,7 +135,37 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Image(
               image: NetworkImage(_url),
             ),
-          )
+          ),
+          Positioned(
+              top: 20,
+              right: 20,
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.all(Radius.circular(10))),
+                    child: Text(
+                      'X: $x',
+                      style: const TextStyle(fontSize: 20),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.all(Radius.circular(10))),
+                    child: Text(
+                      'Y: $y',
+                      style: const TextStyle(fontSize: 20),
+                    ),
+                  ),
+                ],
+              ))
         ],
       ),
     );
@@ -172,33 +209,36 @@ class _MyHomePageState extends State<MyHomePage> {
       return;
     }
     setState(() {
+      x = _getX(long);
+      y = _getY(lat);
       _url =
-          "https://core-carparks-renderer-lots.maps.yandex.net/maps-rdr-carparks/tiles?l=carparks&x=${_getX(long)}&y=${_getY(lat)}&z=19&scale=1&lang=ru_RU";
+          "https://core-carparks-renderer-lots.maps.yandex.net/maps-rdr-carparks/tiles?l=carparks&x=$x&y=$y&z=19&scale=1&lang=ru_RU";
     });
-
     print(_url);
   }
 
-// p = 67108864
   _levelZoom(z) {
-    return math.pow(2, z + 8) / 2;
+    return (math.pow(2, z + 8) / 2);
   }
 
   _getX(double long) {
-    return (((1 + long / 180) * _levelZoom(19)) / 256).toStringAsFixed(0);
+    return (((1 + (long / 180)) * _levelZoom(19)) / 256)
+        .toString()
+        .split(".")[0];
   }
 
   _getY(double lat) {
-    return (((1 - math.log(_getQ(lat)) / math.pi) * _levelZoom(19)) / 256)
-        .toStringAsFixed(0);
+    return (((1 - (math.log(_getQ(lat))) / math.pi) * _levelZoom(19)) / 256)
+        .toString()
+        .split(".")[0];
   }
 
+  final double _e = 0.0818191908426;
   double _getQ(double lat) {
-    double e = 0.0818191908426;
+    double b = ((math.pi * lat) / 180);
 
-    double b = (math.pi * lat) / 180;
-    double f = (1 - e * math.sin(b)) / (1 + e * math.sin(b));
+    double f = (1 - _e * math.sin(b)) / (1 + _e * math.sin(b));
 
-    return math.tan(math.pi / 4 + b / 2) * math.pow(f, e / 2);
+    return math.tan(math.pi / 4 + b / 2) * math.pow(f, _e / 2);
   }
 }
