@@ -222,15 +222,13 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   _getX(double long) {
-    return (((1 + (long / 180)) * _levelZoom(19)) / 256)
-        .toString()
-        .split(".")[0];
+    return (((1 + (long / 180)) * _levelZoom(19)) / 256).floor().toString();
   }
 
   _getY(double lat) {
     return (((1 - (math.log(_getQ(lat))) / math.pi) * _levelZoom(19)) / 256)
-        .toString()
-        .split(".")[0];
+        .floor()
+        .toString();
   }
 
   final double _e = 0.0818191908426;
